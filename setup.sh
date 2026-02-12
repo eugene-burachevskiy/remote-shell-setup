@@ -289,35 +289,70 @@ install_kubecolor() {
     
     log_step "Installing kubecolor (kubectl colorizer)..."
     
-    # Use the maintained kubecolor/kubecolor fork (not the archived hidetatz/kubecolor)
-    local version="v0.5.3"
-    local arch=$(detect_arch)
+    local pkg_mgr=$(get_package_manager)
     
-    # Map arch to kubecolor naming convention
-    local kc_arch="$arch"
-    [ "$arch" = "amd64" ] && kc_arch="x86_64"
-    
-    local download_url="https://github.com/kubecolor/kubecolor/releases/download/${version}/kubecolor_${version#v}_linux_${kc_arch}.tar.gz"
-    
-    log_info "Downloading kubecolor ${version} for ${kc_arch}..."
-    
-    cd "$TEMP_DIR"
-    if download "$download_url" "kubecolor.tar.gz"; then
-        tar -xzf kubecolor.tar.gz
-        # kubecolor extracts to a directory
-        if [ -d "kubecolor" ]; then
-            mv kubecolor/kubecolor ./kubecolor 2>/dev/null || true
+    # For apt-based systems (Debian/Ubuntu), use the official DEB repository
+    if [ "$pkg_mgr" = "apt" ]; then
+        log_info "Installing kubecolor via apt..."
+        if command_exists sudo; then
+            # Install prerequisites
+            sudo apt-get update
+            sudo apt-get install -y apt-transport-https wget
+            
+            # Download and install kubecolor deb package
+            local deb_url="https://kubecolor.github.io/packages/deb/pool/main/k/kubecolor/kubecolor_$(wget -q -O- https://kubecolor.github.io/packages/deb/version)_$(dpkg --print-architecture).deb"
+            local temp_deb="${TEMP_DIR}/kubecolor.deb"
+            
+            if download "$deb_url" "$temp_deb"; then
+                sudo dpkg -i "$temp_deb"
+                sudo apt-get install -f -y  # Fix any dependency issues
+                if command_exists kubecolor; then
+                    log_success "kubecolor installed via apt"
+                    return 0
+                fi
+            fi
+        else
+            log_warning "sudo not available. Cannot install kubecolor via apt."
         fi
-        chmod +x kubecolor
-        mkdir -p "$INSTALL_DIR"
-        mv kubecolor "$INSTALL_DIR/"
-        cd - >/dev/null
-        log_success "kubecolor installed"
-    else
-        log_warning "Failed to download kubecolor from ${download_url}"
-        log_info "You can install it manually: https://github.com/kubecolor/kubecolor/releases"
-        return 1
     fi
+    
+    # For dnf-based systems (RHEL 8+, Fedora, etc.), use the official RPM repository
+    if [ "$pkg_mgr" = "dnf" ]; then
+        log_info "Installing kubecolor via dnf..."
+        if command_exists sudo; then
+            # Add the kubecolor repository and install
+            sudo dnf install -y dnf-plugins-core
+            sudo dnf config-manager --add-repo https://kubecolor.github.io/packages/rpm/kubecolor.repo
+            sudo dnf install -y kubecolor
+            if command_exists kubecolor; then
+                log_success "kubecolor installed via dnf"
+                return 0
+            fi
+        else
+            log_warning "sudo not available. Cannot install kubecolor via dnf."
+        fi
+    fi
+    
+    # For yum-based systems (older RHEL/CentOS), try yum with the repo
+    if [ "$pkg_mgr" = "yum" ]; then
+        log_info "Installing kubecolor via yum..."
+        if command_exists sudo; then
+            # Try to install using yum-config-manager
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo https://kubecolor.github.io/packages/rpm/kubecolor.repo
+            sudo yum install -y kubecolor
+            if command_exists kubecolor; then
+                log_success "kubecolor installed via yum"
+                return 0
+            fi
+        else
+            log_warning "sudo not available. Cannot install kubecolor via yum."
+        fi
+    fi
+    
+    log_warning "Failed to install kubecolor via package manager."
+    log_info "You can install it manually from: https://kubecolor.github.io/setup/install/"
+    return 1
 }
 
 # Verify git
