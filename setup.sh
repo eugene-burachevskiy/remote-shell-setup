@@ -345,31 +345,17 @@ install_opencode() {
     
     log_step "Installing opencode..."
     
-    # opencode has been archived and moved to Crush
-    # The old install URL no longer works (returns 404)
-    # Install from GitHub releases directly
-    log_info "Downloading opencode from GitHub releases..."
+    # Use the official install script
+    if command_exists curl; then
+        curl -fsSL https://opencode.ai/install | bash
+    elif command_exists wget; then
+        wget -qO- https://opencode.ai/install | bash
+    fi
     
-    local arch=$(detect_arch)
-    local opencode_arch="$arch"
-    [ "$arch" = "amd64" ] && opencode_arch="x86_64"
-    
-    # Last available version before archival
-    local version="v0.0.25"
-    local download_url="https://github.com/opencode-ai/opencode/releases/download/${version}/opencode_Linux_${opencode_arch}.tar.gz"
-    
-    cd "$TEMP_DIR"
-    if download "$download_url" "opencode.tar.gz"; then
-        tar -xzf opencode.tar.gz
-        chmod +x opencode
-        mkdir -p "$INSTALL_DIR"
-        mv opencode "$INSTALL_DIR/"
-        cd - >/dev/null
+    if command_exists opencode; then
         log_success "opencode installed"
-        log_info "Note: opencode has been archived. The project has moved to Crush: https://github.com/charmbracelet/crush"
     else
-        log_warning "Failed to install opencode. The project has been archived."
-        log_info "The project has moved to Crush: https://github.com/charmbracelet/crush"
+        log_warning "opencode installation may have failed. Check the output above."
         return 1
     fi
 }
