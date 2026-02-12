@@ -455,26 +455,49 @@ YELLOW='\[\e[33m\]'
 RESET='\[\e[0m\]'
 BOLD='\[\e[1m\]'
 
-# Function to get git branch with color based on status
+# Function to get git branch with symbol indicator
+# Note: Using symbols instead of colors because command substitution in PS1
+# doesn't properly interpret color escape codes
 parse_git_branch() {
     local branch=$(git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
     if [ -n "$branch" ]; then
         # Check if working tree is dirty
         if git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null; then
-            # Clean - green
-            echo "(${GREEN}${branch}${RESET})"
+            # Clean - ✓
+            echo "(${branch} ✓)"
         else
-            # Dirty - yellow
-            echo "(${YELLOW}${branch}${RESET})"
+            # Dirty - ✗
+            echo "(${branch} ✗)"
         fi
     fi
 }
 
-# Unset PROMPT_COMMAND to prevent it from overriding our PS1
-unset PROMPT_COMMAND
+# Alternative: Use PROMPT_COMMAND for dynamic PS1 with colors
+# This runs before each prompt to update PS1 with proper color handling
+update_prompt() {
+    local branch=$(git branch 2>/dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+    local git_info=""
+    
+    if [ -n "$branch" ]; then
+        # Check if working tree is dirty
+        if git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null; then
+            # Clean - green
+            git_info="(${GREEN}${branch}${RESET})"
+        else
+            # Dirty - yellow
+            git_info="(${YELLOW}${branch}${RESET})"
+        fi
+    fi
+    
+    PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} ${git_info}$ "
+}
 
-# Simplified PS1 with purple cyberpunk theme - export to ensure it sticks
-export PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} \$(parse_git_branch)$ "
+# Set PROMPT_COMMAND to update PS1 before each prompt
+unset PROMPT_COMMAND
+PROMPT_COMMAND='update_prompt'
+
+# Fallback: Initial PS1 (will be updated by PROMPT_COMMAND)
+export PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} $ "
 
 # Alias k to kubecolor
 alias k='kubecolor'
