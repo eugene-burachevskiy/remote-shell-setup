@@ -470,6 +470,9 @@ parse_git_branch() {
     fi
 }
 
+# Unset PROMPT_COMMAND to prevent it from overriding our PS1
+unset PROMPT_COMMAND
+
 # Simplified PS1 with purple cyberpunk theme - export to ensure it sticks
 export PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} \$(parse_git_branch)$ "
 
