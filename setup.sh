@@ -440,8 +440,14 @@ configure_shell() {
         log_info "Added $INSTALL_DIR to PATH"
     fi
     
-    # Add custom prompt configuration
-    if ! grep -q "REMOTE-SHELL-SETUP" "$HOME/.bashrc"; then
+    # Remove old configuration if exists (to ensure we update with latest version)
+    if grep -q "REMOTE-SHELL-SETUP" "$HOME/.bashrc"; then
+        log_info "Removing old shell configuration..."
+        # Use sed to remove everything between REMOTE-SHELL-SETUP markers
+        sed -i '/# === REMOTE-SHELL-SETUP START ===/,/# === REMOTE-SHELL-SETUP END ===/d' "$HOME/.bashrc"
+    fi
+    
+    # Add custom prompt configuration (always add fresh)
         cat >> "$HOME/.bashrc" << 'EOF'
 
 # === REMOTE-SHELL-SETUP START ===
@@ -507,10 +513,7 @@ export TERM=xterm-256color
 
 # === REMOTE-SHELL-SETUP END ===
 EOF
-        log_success "Shell configured with purple cyberpunk theme"
-    else
-        log_info "Shell already configured, skipping..."
-    fi
+    log_success "Shell configured with purple cyberpunk theme"
 }
 
 # Setup opencode custom commands
