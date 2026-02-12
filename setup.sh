@@ -381,14 +381,40 @@ install_opencode() {
     log_step "Installing opencode..."
     
     # Use the official install script
+    local install_success=0
     if command_exists curl; then
         curl -fsSL https://opencode.ai/install | bash
+        install_success=$?
     elif command_exists wget; then
         wget -qO- https://opencode.ai/install | bash
+        install_success=$?
     fi
     
-    if command_exists opencode; then
+    # The install script adds opencode to PATH in .bashrc, but current shell doesn't have it yet
+    # Check common installation locations
+    local opencode_found=false
+    
+    # Check if installed to common locations
+    if [ -x "$HOME/.local/bin/opencode" ]; then
+        opencode_found=true
+    elif [ -x "/usr/local/bin/opencode" ]; then
+        opencode_found=true
+    elif [ -x "$HOME/bin/opencode" ]; then
+        opencode_found=true
+    fi
+    
+    # Also try to reload PATH from .bashrc to check
+    if [ "$opencode_found" = false ]; then
+        # Temporarily add common paths to check
+        export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+        if command_exists opencode; then
+            opencode_found=true
+        fi
+    fi
+    
+    if [ "$opencode_found" = true ] || [ $install_success -eq 0 ]; then
         log_success "opencode installed"
+        return 0
     else
         log_warning "opencode installation may have failed. Check the output above."
         return 1
@@ -536,6 +562,9 @@ main() {
     echo "║              Installation Complete!                        ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
+    
+    # Temporarily extend PATH to check for newly installed tools
+    export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
     
     log_info "Installed tools:"
     command_exists kubectl && echo "  ✓ kubectl $(kubectl version --client -o yaml 2>/dev/null | grep gitVersion | head -1 | awk '{print $2}')" || echo "  ✗ kubectl"
