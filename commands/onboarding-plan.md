@@ -1,0 +1,49 @@
+---
+
+description: 'Help new team members onboard with a phased plan and suggestions for first tasks.'
+
+---
+
+
+
+# Create My Onboarding Plan
+
+
+
+I'm a new team member joining this project and I need help creating a structured onboarding plan.
+
+
+
+My background My background will be specified at the end of the message. If I didn't specify the background, please ask me for the background before answering the question. 
+
+
+
+Please create a personalized phased onboarding plan that includes the following phases.
+
+
+
+## Phase 1 - Foundation
+
+
+
+Environment setup with step-by-step instructions and troubleshooting tips, plus identifying the most important documentation to read first
+
+
+
+## Phase 2 - Exploration
+
+
+
+Codebase discovery starting with README files, running existing tests/scripts to understand workflows, and finding beginner-friendly first tasks like documentation improvements. If possible, find me specific open issues or tasks that are suitable for my background.
+
+
+
+## Phase 3 - Integration
+
+
+
+Learning team processes, making first contributions, and building confidence through early wins
+
+
+
+For each phase, break down complex topics into manageable steps, recommend relevant resources, provide concrete next steps, and suggest hands-on practice over just reading theory.
