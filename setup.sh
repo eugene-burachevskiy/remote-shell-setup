@@ -497,21 +497,33 @@ setup_opencode_commands() {
     local commands_dir="$HOME/.config/opencode/commands"
     mkdir -p "$commands_dir"
     
-    # Get the directory where this script is located
-    local script_dir
-    if command_exists dirname; then
-        script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    else
-        log_warning "Cannot determine script directory. Skipping opencode commands setup."
-        return 0
-    fi
+    # When running via curl | bash, we need to download commands from GitHub
+    # since the script doesn't have a local file location
+    local repo_url="https://raw.githubusercontent.com/eugene-burachevskiy/remote-shell-setup/main/commands"
+    local commands=(
+        "code-review.md"
+        "commit-message.md"
+        "explain-code.md"
+        "learn.md"
+        "onboarding-plan.md"
+        "pr-description.md"
+    )
     
-    # Copy custom commands if they exist in the repo
-    if [ -d "$script_dir/commands" ]; then
-        cp "$script_dir/commands/"*.md "$commands_dir/" 2>/dev/null || true
-        log_success "Opencode custom commands copied"
+    local downloaded=0
+    for cmd in "${commands[@]}"; do
+        local dest="$commands_dir/$cmd"
+        if download "$repo_url/$cmd" "$dest" 2>/dev/null; then
+            downloaded=$((downloaded + 1))
+        fi
+    done
+    
+    if [ $downloaded -eq ${#commands[@]} ]; then
+        log_success "Opencode custom commands downloaded ($downloaded files)"
+    elif [ $downloaded -gt 0 ]; then
+        log_info "Downloaded $downloaded out of ${#commands[@]} opencode commands"
     else
-        log_info "No custom commands directory found in repo"
+        log_warning "Failed to download opencode commands. You can find them at:"
+        log_info "https://github.com/eugene-burachevskiy/remote-shell-setup/tree/main/commands"
     fi
 }
 
