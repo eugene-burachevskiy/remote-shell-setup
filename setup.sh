@@ -287,56 +287,35 @@ install_kubecolor() {
         return 0
     fi
     
-    log_step "Installing kubecolor..."
+    log_step "Installing kubecolor (kubectl colorizer)..."
     
-    # Try installation via package manager first (for supported distros)
-    local pkg_mgr=$(get_package_manager)
-    
-    # For apt-based systems, try the official DEB repository
-    if [ "$pkg_mgr" = "apt" ]; then
-        log_info "Attempting to install kubecolor via apt..."
-        if command_exists sudo; then
-            # Add the official kubecolor repository
-            local temp_deb="${TEMP_DIR}/kubecolor.deb"
-            if download "https://github.com/hidetatz/kubecolor/releases/latest/download/kubecolor.deb" "$temp_deb" 2>/dev/null; then
-                sudo dpkg -i "$temp_deb" 2>/dev/null || sudo apt-get install -f -y
-                if command_exists kubecolor; then
-                    log_success "kubecolor installed via apt"
-                    return 0
-                fi
-            fi
-        fi
-    fi
-    
-    # Fall back to direct binary download
-    log_info "Installing kubecolor via direct download..."
-    
-    # Get latest version tag from GitHub
-    local version
-    if command_exists curl; then
-        version=$(curl -s "https://api.github.com/repos/hidetatz/kubecolor/releases/latest" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
-    elif command_exists wget; then
-        version=$(wget -qO- "https://api.github.com/repos/hidetatz/kubecolor/releases/latest" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
-    fi
-    
-    # Default to v0.0.21 if we can't get the version
-    version="${version:-v0.0.21}"
-    
+    # Use the maintained kubecolor/kubecolor fork (not the archived hidetatz/kubecolor)
+    local version="v0.5.3"
     local arch=$(detect_arch)
-    local download_url="https://github.com/hidetatz/kubecolor/releases/download/${version}/kubecolor_${version#v}_Linux_${arch}.tar.gz"
     
-    log_info "Downloading kubecolor ${version} for ${arch}..."
+    # Map arch to kubecolor naming convention
+    local kc_arch="$arch"
+    [ "$arch" = "amd64" ] && kc_arch="x86_64"
+    
+    local download_url="https://github.com/kubecolor/kubecolor/releases/download/${version}/kubecolor_${version#v}_linux_${kc_arch}.tar.gz"
+    
+    log_info "Downloading kubecolor ${version} for ${kc_arch}..."
     
     cd "$TEMP_DIR"
-    if download "$download_url" "kubecolor.tar.gz" 2>/dev/null; then
+    if download "$download_url" "kubecolor.tar.gz"; then
         tar -xzf kubecolor.tar.gz
+        # kubecolor extracts to a directory
+        if [ -d "kubecolor" ]; then
+            mv kubecolor/kubecolor ./kubecolor 2>/dev/null || true
+        fi
         chmod +x kubecolor
         mkdir -p "$INSTALL_DIR"
         mv kubecolor "$INSTALL_DIR/"
         cd - >/dev/null
         log_success "kubecolor installed"
     else
-        log_warning "Failed to install kubecolor. You can install it manually from: https://kubecolor.github.io/setup/install/"
+        log_warning "Failed to download kubecolor from ${download_url}"
+        log_info "You can install it manually: https://github.com/kubecolor/kubecolor/releases"
         return 1
     fi
 }
@@ -366,14 +345,33 @@ install_opencode() {
     
     log_step "Installing opencode..."
     
-    # Run official installer
-    if command_exists curl; then
-        curl -fsSL https://opencode.ai/install.sh | bash
-    elif command_exists wget; then
-        wget -qO- https://opencode.ai/install.sh | bash
-    fi
+    # opencode has been archived and moved to Crush
+    # The old install URL no longer works (returns 404)
+    # Install from GitHub releases directly
+    log_info "Downloading opencode from GitHub releases..."
     
-    log_success "opencode installed"
+    local arch=$(detect_arch)
+    local opencode_arch="$arch"
+    [ "$arch" = "amd64" ] && opencode_arch="x86_64"
+    
+    # Last available version before archival
+    local version="v0.0.25"
+    local download_url="https://github.com/opencode-ai/opencode/releases/download/${version}/opencode_Linux_${opencode_arch}.tar.gz"
+    
+    cd "$TEMP_DIR"
+    if download "$download_url" "opencode.tar.gz"; then
+        tar -xzf opencode.tar.gz
+        chmod +x opencode
+        mkdir -p "$INSTALL_DIR"
+        mv opencode "$INSTALL_DIR/"
+        cd - >/dev/null
+        log_success "opencode installed"
+        log_info "Note: opencode has been archived. The project has moved to Crush: https://github.com/charmbracelet/crush"
+    else
+        log_warning "Failed to install opencode. The project has been archived."
+        log_info "The project has moved to Crush: https://github.com/charmbracelet/crush"
+        return 1
+    fi
 }
 
 # Configure shell
@@ -425,11 +423,14 @@ parse_git_branch() {
     fi
 }
 
-# Simplified PS1 with purple cyberpunk theme
-PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} \$(parse_git_branch)$ "
+# Simplified PS1 with purple cyberpunk theme - export to ensure it sticks
+export PS1="${PURPLE}\u@\h${RESET}:${CYAN}\w${RESET} \$(parse_git_branch)$ "
 
 # Alias k to kubecolor
 alias k='kubecolor'
+
+# Ensure colors are enabled (override any system defaults)
+export TERM=xterm-256color
 
 # === REMOTE-SHELL-SETUP END ===
 EOF
