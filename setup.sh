@@ -5,7 +5,7 @@
 # Usage: curl -fsSL <url> | bash
 #
 
-set -euo pipefail
+set -uo pipefail
 
 # Colors for output
 RED='\033[0;31m'
@@ -289,32 +289,56 @@ install_kubecolor() {
     
     log_step "Installing kubecolor..."
     
-    local arch=$(detect_arch)
+    # Try installation via package manager first (for supported distros)
+    local pkg_mgr=$(get_package_manager)
     
-    # Get latest release info
-    local latest_url="https://api.github.com/repos/hidetatz/kubecolor/releases/latest"
-    local download_url
+    # For apt-based systems, try the official DEB repository
+    if [ "$pkg_mgr" = "apt" ]; then
+        log_info "Attempting to install kubecolor via apt..."
+        if command_exists sudo; then
+            # Add the official kubecolor repository
+            local temp_deb="${TEMP_DIR}/kubecolor.deb"
+            if download "https://github.com/hidetatz/kubecolor/releases/latest/download/kubecolor.deb" "$temp_deb" 2>/dev/null; then
+                sudo dpkg -i "$temp_deb" 2>/dev/null || sudo apt-get install -f -y
+                if command_exists kubecolor; then
+                    log_success "kubecolor installed via apt"
+                    return 0
+                fi
+            fi
+        fi
+    fi
     
+    # Fall back to direct binary download
+    log_info "Installing kubecolor via direct download..."
+    
+    # Get latest version tag from GitHub
+    local version
     if command_exists curl; then
-        download_url=$(curl -s "$latest_url" | grep -o "browser_download_url.*linux-${arch}.*tar.gz" | cut -d'"' -f4)
+        version=$(curl -s "https://api.github.com/repos/hidetatz/kubecolor/releases/latest" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
     elif command_exists wget; then
-        download_url=$(wget -qO- "$latest_url" | grep -o "browser_download_url.*linux-${arch}.*tar.gz" | cut -d'"' -f4)
+        version=$(wget -qO- "https://api.github.com/repos/hidetatz/kubecolor/releases/latest" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4)
     fi
     
-    if [ -z "$download_url" ]; then
-        # Fallback to direct binary download
-        download_url="https://github.com/hidetatz/kubecolor/releases/latest/download/kubecolor"
-        download "$download_url" "${TEMP_DIR}/kubecolor"
+    # Default to v0.0.21 if we can't get the version
+    version="${version:-v0.0.21}"
+    
+    local arch=$(detect_arch)
+    local download_url="https://github.com/hidetatz/kubecolor/releases/download/${version}/kubecolor_${version#v}_Linux_${arch}.tar.gz"
+    
+    log_info "Downloading kubecolor ${version} for ${arch}..."
+    
+    cd "$TEMP_DIR"
+    if download "$download_url" "kubecolor.tar.gz" 2>/dev/null; then
+        tar -xzf kubecolor.tar.gz
+        chmod +x kubecolor
+        mkdir -p "$INSTALL_DIR"
+        mv kubecolor "$INSTALL_DIR/"
+        cd - >/dev/null
+        log_success "kubecolor installed"
     else
-        download "$download_url" "${TEMP_DIR}/kubecolor.tar.gz"
-        tar -xzf "${TEMP_DIR}/kubecolor.tar.gz" -C "$TEMP_DIR"
+        log_warning "Failed to install kubecolor. You can install it manually from: https://kubecolor.github.io/setup/install/"
+        return 1
     fi
-    
-    chmod +x "${TEMP_DIR}/kubecolor"
-    mkdir -p "$INSTALL_DIR"
-    mv "${TEMP_DIR}/kubecolor" "$INSTALL_DIR/"
-    
-    log_success "kubecolor installed"
 }
 
 # Verify git
@@ -469,20 +493,20 @@ main() {
     # Check and install prerequisites
     check_prerequisites
     
-    # Install tools
-    install_kubectl
-    install_aws_cli
-    install_helm
-    install_kubectx_kubens
-    install_kubecolor
-    verify_git
-    install_opencode
+    # Install tools (continue even if some fail)
+    install_kubectl || log_warning "kubectl installation failed, continuing..."
+    install_aws_cli || log_warning "AWS CLI installation failed, continuing..."
+    install_helm || log_warning "helm installation failed, continuing..."
+    install_kubectx_kubens || log_warning "kubectx/kubens installation failed, continuing..."
+    install_kubecolor || log_warning "kubecolor installation had issues, continuing..."
+    verify_git || log_warning "git verification failed, continuing..."
+    install_opencode || log_warning "opencode installation failed, continuing..."
     
     # Configure shell
-    configure_shell
+    configure_shell || log_warning "Shell configuration had issues, continuing..."
     
     # Setup opencode commands
-    setup_opencode_commands
+    setup_opencode_commands || log_warning "Opencode commands setup had issues, continuing..."
     
     # Summary
     echo -e "${GREEN}"
