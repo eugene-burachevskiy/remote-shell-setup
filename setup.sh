@@ -521,7 +521,7 @@ main() {
     echo "║   Setting up your shell with:                              ║"
     echo "║   • kubectl 1.32, AWS CLI, helm 4.0.1                      ║"
     echo "║   • kubectx, kubens, kubecolor                             ║"
-    echo "║   • Purple cyberpunk prompt with git integration           ║"
+    echo "║   • Purple prompt with git integration                     ║"
     echo "║   • opencode with custom commands                          ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -580,13 +580,7 @@ main() {
     log_info "Next steps:"
     echo "  1. Start a new shell or run: source ~/.bashrc"
     echo "  2. Try: k get pods (alias for kubecolor)"
-    echo "  3. Navigate to a git repo to see the colorful prompt"
     echo ""
-    log_info "Your prompt will show:"
-    echo "  - Purple: user@hostname"
-    echo "  - Cyan: current directory"
-    echo "  - Green: clean git branch"
-    echo "  - Yellow: dirty git branch (uncommitted changes)"
 }
 
 # Run main function
