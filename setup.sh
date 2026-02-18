@@ -529,6 +529,7 @@ setup_opencode_commands() {
     local commands=(
         "code-review.md"
         "commit-message.md"
+        "deslop.md"
         "explain-code.md"
         "learn.md"
         "onboarding-plan.md"
