@@ -531,6 +531,8 @@ setup_opencode_commands() {
         "commit-message.md"
         "deslop.md"
         "explain-code.md"
+        "fix-ci.md"
+        "fix-merge-conflicts.md"
         "learn.md"
         "onboarding-plan.md"
         "pr-description.md"
