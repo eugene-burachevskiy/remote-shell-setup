@@ -1,7 +1,6 @@
 {
   "version": "0.10.0",
   "environments": [
-    "cursor",
     "opencode"
   ],
   "initializedPhases": [
@@ -10,5 +9,12 @@
     "planning"
   ],
   "createdAt": "2026-02-12T05:56:18.247Z",
-  "updatedAt": "2026-02-12T05:56:18.273Z"
+  "updatedAt": "2026-04-10T05:53:28.356Z",
+  "phases": [
+    "requirements",
+    "design",
+    "planning",
+    "implementation",
+    "testing"
+  ]
 }
