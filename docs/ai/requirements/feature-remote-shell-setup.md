@@ -14,7 +14,7 @@ When working on new remote machines (VMs, cloud instances, or fresh installation
 - Manually editing `.bashrc` to customize the prompt
 - Installing each tool individually (kubectl, AWS CLI, helm, etc.)
 - Configuring aliases and shell preferences
-- Setting up opencode with custom commands
+- Setting up opencode with public commands, subagents, and skills
 
 **Who is affected by this problem?**
 
@@ -43,7 +43,7 @@ This process is repetitive, error-prone, and takes 30+ minutes per machine.
 3. **Purple cyberpunk-themed prompt**: Customize bash prompt with purple colors and git branch display
 4. **Essential DevOps tools**: Install kubectl 1.32, AWS CLI latest, helm 4.0.1, kubectx, kubens, kubecolor, and git
 5. **Convenient aliases**: Set up `k="kubecolor"` alias
-6. **Opencode integration**: Install opencode and copy custom commands
+6. **Opencode integration**: Install opencode and mirror the repository's commands, subagents, and skills
 
 ### Secondary Goals
 
@@ -139,6 +139,9 @@ So that the setup works correctly on Oracle Linux, Ubuntu, Debian, and other dis
 - [ ] git is verified to be installed
 - [ ] opencode is installed
 - [ ] Custom opencode commands are copied to ~/.config/opencode/commands/
+- [ ] Opencode subagents are copied to ~/.config/opencode/agents/
+- [ ] Opencode skills, including nested security skills, are copied to ~/.config/opencode/skills/
+- [ ] The installer discovers all repository assets without a per-file list
 - [ ] Purple cyberpunk-themed prompt is configured in ~/.bashrc
 - [ ] Git branch is displayed in prompt when inside a git repository
 - [ ] `k` alias is set to `kubecolor` in ~/.bashrc
@@ -191,16 +194,19 @@ So that the setup works correctly on Oracle Linux, Ubuntu, Debian, and other dis
 
 ### Resolved Questions
 
-1. **Q**: Which opencode custom commands should be included?
-   **A**: code-review, learn, onboarding-plan, pr-description, explain-code, commit-message
+1. **Q**: Which opencode assets should be included?
+   **A**: All files committed under `commands/`, `agents/`, and `skills/`, except the four personal commands excluded from the public repository.
 
-2. **Q**: Should we upgrade existing tools if they're older versions?
+2. **Q**: Should the installer maintain a list of individual opencode files?
+   **A**: No. It downloads the repository archive and mirrors the three asset directories.
+
+3. **Q**: Should we upgrade existing tools if they're older versions?
    **A**: No, skip if tool exists regardless of version
 
-3. **Q**: Should the script require root/sudo?
+4. **Q**: Should the script require root/sudo?
    **A**: Prefer user-level installations; use sudo only when necessary
 
-4. **Q**: What's the preferred installation method for tools?
+5. **Q**: What's the preferred installation method for tools?
    **A**: Official binary releases via curl when available
 
 ### Implementation Notes

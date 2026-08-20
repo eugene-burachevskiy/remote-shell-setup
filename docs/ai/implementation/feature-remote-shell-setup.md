@@ -26,7 +26,9 @@ description: Track implementation progress, deviations from design, and technica
 | git Verification | ✅ Complete | Uses package manager if missing |
 | opencode Installer | ✅ Complete | Via official install script |
 | Shell Configuration | ✅ Complete | Simplified purple prompt with git status |
-| Opencode Commands | ✅ Complete | Copied to ~/.config/opencode/commands |
+| Opencode Commands | ✅ Complete | Repository archive mirrored to ~/.config/opencode/commands |
+| Opencode Subagents | ✅ Complete | Repository archive mirrored to ~/.config/opencode/agents |
+| Opencode Skills | ✅ Complete | Repository archive mirrored to ~/.config/opencode/skills, including security/ |
 | Config File | ✅ Complete | config/versions.conf with tool versions |
 
 ## Implementation Notes
@@ -67,6 +69,13 @@ description: Track implementation progress, deviations from design, and technica
 **Actual Implementation**: Comprehensive OS detection including Oracle Linux as RHEL-based
 **Reason for Change**: User mentioned Oracle Linux as common target
 **Impact**: Proper package manager selection on Oracle Linux (uses yum/dnf) 
+
+### Deviation 6: Opencode Asset Discovery
+
+**Design**: Copy a fixed set of custom command files.
+**Actual Implementation**: Download the repository archive and mirror all files under `commands/`, `agents/`, and `skills/`.
+**Reason for Change**: Keep the repository as the single source of truth and install new assets without editing the setup script.
+**Impact**: The installer tracks the selected repository branch and preserves nested asset structures.
 
 ## Technical Challenges & Solutions
 
@@ -146,7 +155,7 @@ bin/setup.sh
 │   ├── verify_git()
 │   └── install_opencode()
 ├── Shell Configuration Functions
-├── Opencode Setup Functions
+├── Opencode Asset Setup Functions
 └── Main Execution Flow
 ```
 
@@ -159,6 +168,9 @@ bin/setup.sh
 | `INSTALL_DIR` | `~/.local/bin` | Directory for tool binaries |
 | `KUBECTL_VERSION` | `1.32.0` | Specific kubectl version to install |
 | `HELM_VERSION` | `4.0.1` | Specific helm version to install |
+| `OPENCODE_CONFIG_DIR` | `~/.config/opencode` | User-level opencode asset directory |
+| `OPENCODE_REPO_URL` | Remote Shell Setup GitHub repository | Repository containing opencode assets |
+| `OPENCODE_REPO_BRANCH` | `main` | Branch containing opencode assets |
 | `SKIP_KUBECTL` | `false` | Skip kubectl installation |
 | `SKIP_AWS_CLI` | `false` | Skip AWS CLI installation |
 | `SKIP_HELM` | `false` | Skip helm installation |
@@ -237,7 +249,7 @@ bin/setup.sh
 
 1. Script hosted at: `https://raw.githubusercontent.com/[user]/[repo]/main/bin/setup.sh`
 2. Usage: `curl -fsSL https://[url] | bash`
-3. Custom commands available at: `commands/` directory
+3. Opencode commands, subagents, and skills available under `commands/`, `agents/`, and `skills/`
 
 ## Future Improvements
 

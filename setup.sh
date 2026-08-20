@@ -20,6 +20,9 @@ NC='\033[0m' # No Color
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 KUBECTL_VERSION="${KUBECTL_VERSION:-1.32.0}"
 HELM_VERSION="${HELM_VERSION:-4.0.1}"
+OPENCODE_CONFIG_DIR="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
+OPENCODE_REPO_URL="${OPENCODE_REPO_URL:-https://github.com/eugene-burachevskiy/remote-shell-setup}"
+OPENCODE_REPO_BRANCH="${OPENCODE_REPO_BRANCH:-main}"
 TEMP_DIR="$(mktemp -d)"
 
 # Cleanup on exit
@@ -516,44 +519,55 @@ EOF
     log_success "Shell configured with purple cyberpunk theme"
 }
 
-# Setup opencode custom commands
-setup_opencode_commands() {
-    log_step "Setting up opencode custom commands..."
-    
-    local commands_dir="$HOME/.config/opencode/commands"
-    mkdir -p "$commands_dir"
-    
-    # When running via curl | bash, we need to download commands from GitHub
-    # since the script doesn't have a local file location
-    local repo_url="https://raw.githubusercontent.com/eugene-burachevskiy/remote-shell-setup/main/commands"
-    local commands=(
-        "code-review.md"
-        "commit-message.md"
-        "deslop.md"
-        "explain-code.md"
-        "fix-ci.md"
-        "fix-merge-conflicts.md"
-        "learn.md"
-        "onboarding-plan.md"
-        "pr-description.md"
-    )
-    
-    local downloaded=0
-    for cmd in "${commands[@]}"; do
-        local dest="$commands_dir/$cmd"
-        if download "$repo_url/$cmd" "$dest" 2>/dev/null; then
-            downloaded=$((downloaded + 1))
+# Setup opencode commands, agents, and skills
+setup_opencode_assets() {
+    log_step "Setting up opencode commands, agents, and skills..."
+
+    # Download the repository tree so every committed asset is installed without
+    # maintaining a second file list in this script.
+    local archive_url="${OPENCODE_REPO_URL}/archive/refs/heads/${OPENCODE_REPO_BRANCH}.tar.gz"
+    local archive_path="${TEMP_DIR}/opencode-assets.tar.gz"
+    local source_root="${TEMP_DIR}/opencode-assets"
+
+    if ! download "$archive_url" "$archive_path" 2>/dev/null; then
+        log_warning "Failed to download opencode assets. You can find them at:"
+        log_info "${OPENCODE_REPO_URL}/tree/${OPENCODE_REPO_BRANCH}"
+        return 1
+    fi
+
+    mkdir -p "$source_root"
+    if ! tar -xzf "$archive_path" -C "$source_root" --strip-components=1; then
+        log_warning "Failed to extract opencode assets archive"
+        return 1
+    fi
+
+    local installed=0
+    local failed=0
+    local asset
+    for asset in commands agents skills; do
+        if [ ! -d "$source_root/$asset" ]; then
+            log_warning "Repository asset directory is missing: $asset"
+            failed=$((failed + 1))
+            continue
+        fi
+
+        mkdir -p "$OPENCODE_CONFIG_DIR/$asset"
+        if cp -a "$source_root/$asset/." "$OPENCODE_CONFIG_DIR/$asset/"; then
+            installed=$((installed + 1))
+            log_success "Opencode $asset installed"
+        else
+            log_warning "Failed to install opencode $asset"
+            failed=$((failed + 1))
         fi
     done
-    
-    if [ $downloaded -eq ${#commands[@]} ]; then
-        log_success "Opencode custom commands downloaded ($downloaded files)"
-    elif [ $downloaded -gt 0 ]; then
-        log_info "Downloaded $downloaded out of ${#commands[@]} opencode commands"
-    else
-        log_warning "Failed to download opencode commands. You can find them at:"
-        log_info "https://github.com/eugene-burachevskiy/remote-shell-setup/tree/main/commands"
+
+    if [ "$failed" -eq 0 ]; then
+        log_success "Opencode assets installed from repository ($installed directories)"
+        return 0
     fi
+
+    log_warning "Opencode assets setup completed with errors ($installed succeeded, $failed failed)"
+    return 1
 }
 
 # Main function
@@ -566,7 +580,7 @@ main() {
     echo "║   • kubectl 1.32, AWS CLI, helm 4.0.1                      ║"
     echo "║   • kubectx, kubens, kubecolor                             ║"
     echo "║   • Purple prompt with git integration                     ║"
-    echo "║   • opencode with custom commands                          ║"
+    echo "║   • opencode commands, agents, and skills                  ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
     
@@ -597,8 +611,8 @@ main() {
     # Configure shell
     configure_shell || log_warning "Shell configuration had issues, continuing..."
     
-    # Setup opencode commands
-    setup_opencode_commands || log_warning "Opencode commands setup had issues, continuing..."
+    # Setup opencode commands, agents, and skills
+    setup_opencode_assets || log_warning "Opencode assets setup had issues, continuing..."
     
     # Summary
     echo -e "${GREEN}"

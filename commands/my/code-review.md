@@ -24,11 +24,12 @@ Review the code changes by:
 
 
 
-1. Running `git diff` to analyze uncommitted changes, or
+1. Run `git diff` to review uncommitted changes.
 
-2. Running `git diff main...HEAD` to review branch changes
+2. For branch changes, identify the remote default branch and compare it with
+   `HEAD`.
 
-3. Providing structured, actionable feedback
+3. Provide structured, actionable feedback.
 
 
 

@@ -14,7 +14,7 @@ source ~/.bashrc
 
 ## Overview
 
-This script sets up a complete development environment with DevOps tools, colorful shell prompt with git integration, and opencode AI assistant with custom commands.
+This script sets up a complete development environment with DevOps tools, a colorful shell prompt with git integration, and the opencode AI assistant with commands, subagents, and skills.
 
 ## Features
 
@@ -41,16 +41,51 @@ This script sets up a complete development environment with DevOps tools, colorf
 - **Convenient aliases**:
   - `k` → `kubecolor` (colorized kubectl)
 
-### Opencode Custom Commands
+### Opencode Assets
 
-The following custom commands are copied to `~/.config/opencode/commands/`:
+The installer mirrors every file in the repository's `commands/`, `agents/`, and `skills/` directories to `~/.config/opencode/`. It downloads the repository archive at runtime, so the installer does not contain a second hardcoded file list.
 
-- `code-review` - Comprehensive code review with structured feedback
-- `learn` - Extract reusable patterns from sessions
-- `onboarding-plan` - Create personalized team onboarding plans
-- `pr-description` - Generate natural pull request descriptions
-- `explain-code` - Detailed code explanations
-- `commit-message` - Generate conventional commit messages
+Commands currently included:
+
+- `deslop`
+- `explain-code`
+- `fix-ci`
+- `fix-merge-conflicts`
+- `grill-me`
+- `learn`
+- `summary`
+- `wait-what`
+- `my/code-review`
+- `my/commit-message`
+- `my/ocr-code-review`
+- `my/pr-description`
+- `my/pr-simple`
+
+The personal commands `agentic-repo-audit`, `onboarding-plan`, `prepare-interview`, and `prepare-interview-feedback` are not included.
+
+Subagents are installed from `agents/`:
+
+- `00-deepseek-code-search`
+- `brainstorm`
+
+Skills are installed from `skills/`, including the nine security skills under `skills/security/`:
+
+- `atmos-terraform`
+- `find-docs`
+- `frontend-design`
+- `jina-reader`
+- `open-code-review`
+- `terraform-skill`
+- `glab`
+- `security/securing-api-gateway-with-aws-waf`
+- `security/securing-aws-iam-permissions`
+- `security/securing-aws-lambda-execution-roles`
+- `security/securing-container-registry-images`
+- `security/securing-container-registry-with-harbor`
+- `security/securing-github-actions-workflows`
+- `security/securing-helm-chart-deployments`
+- `security/securing-kubernetes-on-cloud`
+- `security/securing-serverless-functions`
 
 ## Quick Start
 
@@ -118,6 +153,14 @@ SKIP_AWS_CLI=false
 # ... etc
 ```
 
+Opencode asset installation can be customized with environment variables:
+
+```bash
+OPENCODE_CONFIG_DIR="$HOME/.config/opencode"
+OPENCODE_REPO_URL="https://github.com/eugene-burachevskiy/remote-shell-setup"
+OPENCODE_REPO_BRANCH="main"
+```
+
 ## What the Script Does
 
 1. **Detects Environment**
@@ -144,7 +187,10 @@ SKIP_AWS_CLI=false
    - Adds `k` alias for kubecolor
 
 5. **Sets Up Opencode**
-   - Copies custom commands to `~/.config/opencode/commands/`
+   - Downloads the repository archive for the selected branch
+   - Mirrors all repository commands to `~/.config/opencode/commands/`
+   - Mirrors all repository subagents to `~/.config/opencode/agents/`
+   - Mirrors all repository skills to `~/.config/opencode/skills/`
 
 ## Prompt Preview
 
@@ -192,12 +238,32 @@ remote-shell-setup/
 ├── config/
 │   └── versions.conf     # Tool versions configuration
 ├── commands/             # Opencode custom commands
-│   ├── code-review.md
-│   ├── learn.md
-│   ├── onboarding-plan.md
-│   ├── pr-description.md
+│   ├── deslop.md
 │   ├── explain-code.md
-│   └── commit-message.md
+│   ├── fix-ci.md
+│   ├── fix-merge-conflicts.md
+│   ├── grill-me.md
+│   ├── learn.md
+│   ├── summary.md
+│   ├── wait-what.md
+│   └── my/
+│       ├── code-review.md
+│       ├── commit-message.md
+│       ├── ocr-code-review.md
+│       ├── pr-description.md
+│       └── pr-simple.md
+├── agents/               # Opencode subagents
+│   ├── 00-deepseek-code-search.md
+│   └── brainstorm.md
+├── skills/               # Opencode skills and bundled references
+│   ├── atmos-terraform/
+│   ├── find-docs/
+│   ├── frontend-design/
+│   ├── jina-reader/
+│   ├── open-code-review/
+│   ├── terraform-skill/
+│   ├── glab/
+│   └── security/
 ├── docs/                 # AI DevKit documentation
 │   └── ai/
 │       ├── requirements/

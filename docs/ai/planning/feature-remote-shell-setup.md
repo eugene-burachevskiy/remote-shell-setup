@@ -162,23 +162,23 @@ description: Break down work into actionable tasks and estimate timeline for the
 
 ### Phase 5: Opencode Integration
 
-- [x] **Task 5.1**: Copy custom commands from repo
+- [x] **Task 5.1**: Maintain public opencode commands, subagents, and skills in the repository
   - **Effort**: 15 min
   - **Dependencies**: None
   - **Status**: ⏳ Pending
-  - **Notes**: Copy commands/ directory files
+  - **Notes**: Preserve nested command and skill resource directories while excluding personal commands
 
-- [x] **Task 5.2**: Implement opencode commands setup
+- [x] **Task 5.2**: Implement opencode asset setup
   - **Effort**: 20 min
   - **Dependencies**: Task 5.1
   - **Status**: ⏳ Pending
-  - **Notes**: Function to copy commands to ~/.config/opencode/commands/
+  - **Notes**: Download the repository archive and mirror commands, agents, and skills without a per-file list
 
-- [x] **Task 5.3**: Update documentation with commands
+- [x] **Task 5.3**: Update documentation with opencode assets
   - **Effort**: 10 min
   - **Dependencies**: Task 5.1
   - **Status**: ⏳ Pending
-  - **Notes**: Document available commands
+  - **Notes**: Document commands, subagents, skills, and runtime asset configuration
 
 ### Phase 6: Testing & Validation
 
@@ -350,12 +350,9 @@ Task 5.1 (Copy Commands) ─┬─> Task 5.2 (Setup Function)
 - [ ] `docs/ai/implementation/feature-remote-shell-setup.md`
 - [ ] `docs/ai/testing/feature-remote-shell-setup.md`
 - [ ] `bin/setup.sh` (main script)
-- [ ] `commands/code-review.md`
-- [ ] `commands/learn.md`
-- [ ] `commands/onboarding-plan.md`
-- [ ] `commands/pr-description.md`
-- [ ] `commands/explain-code.md`
-- [ ] `commands/commit-message.md`
+- [ ] Public command and asset directories match the approved source trees
+- [ ] `agents/` contains the public subagents
+- [ ] `skills/` contains the approved skills and resources
 - [ ] `README.md`
 
 ## Implementation Notes
@@ -395,4 +392,3 @@ Detect using: `uname -m`
 - x86_64 → amd64
 - aarch64 → arm64
 - arm64 → arm64
-

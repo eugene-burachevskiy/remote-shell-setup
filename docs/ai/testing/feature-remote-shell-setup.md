@@ -170,16 +170,16 @@ version.BuildInfo{Version:"v4.0.1", ...}
 - [ ] Should show kubectl version output with colors
 - [ ] Output should be colorized
 
-### Opencode Commands Verification
+### Opencode Assets Verification
 
 - [ ] Check commands directory: `ls -la ~/.config/opencode/commands/`
-- [ ] Following files exist:
-  - [ ] `code-review.md`
-  - [ ] `learn.md`
-  - [ ] `onboarding-plan.md`
-  - [ ] `pr-description.md`
-  - [ ] `explain-code.md`
-  - [ ] `commit-message.md`
+- [ ] Every repository command exists under `~/.config/opencode/commands/`, including nested `my/` commands
+- [ ] Excluded personal commands are not present in the public repository
+- [ ] Check subagents directory: `ls -la ~/.config/opencode/agents/`
+- [ ] `00-deepseek-code-search.md` and `brainstorm.md` exist
+- [ ] Check skills directory: `ls -la ~/.config/opencode/skills/`
+- [ ] All top-level skills and `security/` skill directories exist
+- [ ] Nested skill references, scripts, assets, and licenses are present
 
 ### BashRC Backup
 
@@ -304,6 +304,10 @@ ls -la ~/.bashrc.backup.*
 
 # Check opencode commands
 ls -la ~/.config/opencode/commands/
+
+# Check opencode subagents and skills
+ls -la ~/.config/opencode/agents/
+ls -la ~/.config/opencode/skills/
 ```
 
 ## Troubleshooting Guide
@@ -397,6 +401,9 @@ Verify all acceptance criteria are met:
 - [ ] git is verified to be installed
 - [ ] opencode is installed
 - [ ] Custom opencode commands are copied to ~/.config/opencode/commands/
+- [ ] Opencode subagents are copied to ~/.config/opencode/agents/
+- [ ] Opencode skills are copied to ~/.config/opencode/skills/, including security/
+- [ ] The installer mirrors all repository assets without a per-file list
 - [ ] Purple cyberpunk-themed prompt is configured in ~/.bashrc
 - [ ] Git branch is displayed in prompt when inside a git repository
 - [ ] `k` alias is set to `kubecolor` in ~/.bashrc

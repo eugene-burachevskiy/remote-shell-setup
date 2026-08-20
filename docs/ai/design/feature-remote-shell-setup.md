@@ -18,7 +18,7 @@ flowchart TD
     B --> C[Verify Prerequisites]
     C --> D[Install Tools]
     D --> E[Configure Shell]
-    E --> F[Copy Opencode Commands]
+    E --> F[Sync Opencode Assets]
     F --> G[Complete]
     
     D --> D1[kubectl 1.32]
@@ -32,6 +32,10 @@ flowchart TD
     E --> E1[Purple Cyberpunk Prompt]
     E --> E2[Git Branch Display]
     E --> E3[k=kubecolor Alias]
+
+    F --> F1[Commands]
+    F --> F2[Subagents]
+    F --> F3[Skills]
 ```
 
 ### Key Components and Responsibilities
@@ -40,7 +44,7 @@ flowchart TD
 2. **OS Package Manager Module**: Handles distribution-specific package installations using apt, yum, or dnf
 3. **Tool Installation Functions**: Individual functions for each tool installation (binary downloads as primary, package managers as fallback)
 4. **Configuration Manager**: Modifies ~/.bashrc with prompt and aliases
-5. **Opencode Integration**: Copies custom commands to the appropriate directory
+5. **Opencode Integration**: Downloads the repository archive and mirrors commands, subagents, and skills to the user config directory
 
 ### Technology Stack
 
@@ -168,12 +172,13 @@ TOOLS[
 ### 5. Opencode Integration Module
 
 **Responsibilities**:
-- Create opencode commands directory
-- Copy custom command definitions
+- Create opencode asset directories
+- Download the repository archive for the selected branch
+- Mirror every file under `commands/`, `agents/`, and `skills/`
 - Verify opencode installation
 
 **Functions**:
-- `setup_opencode_commands()`: Copy commands from repo
+- `setup_opencode_assets()`: Download and mirror repository assets
 
 ## Design Decisions
 
@@ -546,12 +551,13 @@ remote-shell-setup/
 ├── config/
 │   └── versions.conf         # Configuration file with tool versions
 ├── commands/
-│   ├── code-review.md        # Opencode custom commands
-│   ├── learn.md
-│   ├── onboarding-plan.md
-│   ├── pr-description.md
-│   ├── explain-code.md
-│   └── commit-message.md
+│   ├── *.md                  # Public Opencode commands
+│   └── my/                   # Public namespaced commands
+├── agents/
+│   └── *.md                  # Opencode subagents
+├── skills/
+│   ├── */                    # Selected Opencode skills
+│   └── security/             # Security skills and their resources
 ├── docs/
 │   └── ai/
 │       ├── requirements/
@@ -575,7 +581,7 @@ sequenceDiagram
     participant S as setup.sh
     participant T as Tool Installers
     participant B as ~/.bashrc
-    participant C as Commands
+    participant C as Opencode Assets
 
     U->>S: curl | bash
     S->>S: detect_environment()
@@ -590,7 +596,7 @@ sequenceDiagram
     S->>B: configure_prompt()
     S->>B: add_aliases()
     
-    S->>C: setup_opencode_commands()
+    S->>C: setup_opencode_assets()
     
     S-->>U: Installation complete!
 ```
